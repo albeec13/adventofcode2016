@@ -18,15 +18,21 @@ const (
     W
 )
 
-type Path struct {
+type Point struct {
     North int
     East int
+}
+
+type Path struct {
+    Location Point
     Bearing CompassDirection
+    History map[Point]int
 }
 
 func main() {
     // start with no distances from starting point, facing north
-    path := Path{0,0,N}
+    var path Path
+    path.Init(0,0,N)
 
     // Remove white space, and create slice splitting on , from original input
     inp := strings.Split(strings.Join(strings.Fields(input),""),",")
@@ -36,7 +42,9 @@ func main() {
             dir := string(step[0])
             if mag,err := strconv.Atoi(string(step[1:])); err == nil {
                 path.turn(dir)
-                path.move(mag)
+                if done := path.move(mag); done {
+                    break;
+                }
             } else {
                 log.Fatal("Bad input")
             }
@@ -45,8 +53,14 @@ func main() {
         }
     }
 
-    fmt.Println(path)
-    fmt.Println("Total distance: ", abs(path.North) + abs(path.East))
+    fmt.Println(path.Location)
+    fmt.Println("Total distance: ", abs(path.Location.North) + abs(path.Location.East))
+}
+
+func (p *Path) Init (north int, east int, bearing CompassDirection) {
+    p.Location = Point{north, east}
+    p.Bearing = bearing
+    p.History = make(map[Point]int)
 }
 
 func (p *Path) turn (direction string) {
@@ -60,19 +74,29 @@ func (p *Path) turn (direction string) {
     }
 }
 
-func (p *Path) move (magnitude int) {
-    switch p.Bearing {
-    case N:
-        p.North += magnitude
-    case E:
-        p.East += magnitude
-    case S:
-        p.North -= magnitude
-    case W:
-        p.East -= magnitude
-    default:
-        log.Fatal("Invalid direction")
+func (p *Path) move (magnitude int) bool {
+    for i := 0; i < abs(magnitude); i++ {
+        switch p.Bearing {
+        case N:
+            p.Location.North += 1
+        case E:
+            p.Location.East += 1
+        case S:
+            p.Location.North -= 1
+        case W:
+            p.Location.East -= 1
+        default:
+            log.Fatal("Invalid direction")
+        }
+
+        p.History[p.Location] += 1
+
+        if p.History[p.Location] == 2 {
+            fmt.Println(p.Location)
+            return true
+        }
     }
+    return false
 }
 
 func abs(x int) int {
