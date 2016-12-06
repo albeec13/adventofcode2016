@@ -13,24 +13,38 @@ type Triangle struct {
 
 func main() {
     cnt := 0
+    var triLineArray [3]string
+    nLines := 0
 
     triLines := strings.Split(input, "\n")
     for _,triLine := range triLines {
-        var triInts [3]int
-        var err error
 
-        triple := strings.Fields(triLine)
-        if len(triple) == 3 {
-            for i,str := range triple {
-                if triInts[i], err = strconv.Atoi(str); err != nil {
-                    log.Fatal(err)
-                } 
+        triLineArray[nLines] = triLine
+        nLines++
+
+        if nLines == 3 {
+            var triInts [3][3]int
+            var err error
+
+            for j := 0; j < 3; j++ {
+                triple := strings.Fields(triLineArray[j])
+                if len(triple) == 3 {
+                    for i,str := range triple {
+                        if triInts[i][j], err = strconv.Atoi(str); err != nil {
+                            log.Fatal(err)
+                        }
+                    }
+                } else {
+                    log.Fatal("Bad input file.")
+                }
             }
-        } else {
-            log.Fatal("Bad input file.")
+
+            for i := 0; i < 3; i++ {
+                triangle := Triangle{triInts[i]}
+                cnt += triangle.Valid()
+            }
+            nLines =0
         }
-        triangle := Triangle{triInts}
-        cnt += triangle.Valid()
     }
     fmt.Println("Valid Triangles: ", cnt)
 }
