@@ -24,12 +24,12 @@ func main() {
     }
 
     for i,column := range runeCnt {
-        max := 0
+        min := len(inputSlice)
         letter := 'a' - 1
         for key,val := range column {
-            if val > max {
+            if val < min {
                 letter = key
-                max = val
+                min = val
             }
         }
         message[i] = byte(letter)
