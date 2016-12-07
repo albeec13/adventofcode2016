@@ -10,7 +10,8 @@ import (
 
 func main() {
     input := []byte("ffykfhsq")
-    password := ""
+    password := []byte("        ")
+    cnt := 0
 
     for i:=0;; i++ {
         data := make([]byte,0)
@@ -20,11 +21,17 @@ func main() {
         md5sum := md5.Sum(data)
         md5sumStr := hex.EncodeToString(md5sum[:])
         if(strings.HasPrefix(md5sumStr,"00000")) {
-            fmt.Println(md5sumStr)
-            password += string(md5sumStr[5])
-
-            if len(password) == 8 { break }
+            if pos, err := strconv.Atoi(string(md5sumStr[5])); err == nil {
+                if pos < 8 {
+                    if password[pos] == ' ' {
+                        password[pos] = md5sumStr[6]
+                        fmt.Println(md5sumStr)
+                        cnt++
+                        if cnt == 8 { break }
+                    }
+                }
+            }
         }
     }
-    fmt.Println("Password: ", password)
+    fmt.Println("Password: ", string(password))
 }
