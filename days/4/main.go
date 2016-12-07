@@ -14,8 +14,8 @@ type RuneCnt struct {
 }
 
 type ByCount []RuneCnt
-func (a ByCount) Len() int		{ return len(a) }
-func (a ByCount) Swap(i, j int)		{ a[i], a[j] = a[j], a[i] }
+func (a ByCount) Len() int { return len(a) }
+func (a ByCount) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
 func (a ByCount) Less(i, j int) bool {
     switch {
     case a[i].Count == a[j].Count:
@@ -30,24 +30,30 @@ func main() {
     inputRooms := strings.Split(input, "\n")
 
     for _,room := range inputRooms {
-        cnt += IsRealRoom(room)
+        secID, decodedRoom := IsRealRoom(room)
+        cnt += secID
+
+        if(decodedRoom != "") {
+            fmt.Println(secID, " - ", decodedRoom)
+        }
     }
 
-    fmt.Println(cnt)
+    fmt.Println("Sum of valid SecIDs: ", cnt)
 }
 
-func IsRealRoom(roomEncrypted string) int {
+func IsRealRoom(roomEncrypted string) (int, string) {
     strSplt := strings.Split(roomEncrypted,"-")
-    name := strings.Join(strSplt[0:len(strSplt)-1],"")
+    encoded := strings.Join(strSplt[0:len(strSplt) -1],"-")
+    encodedConcat := strings.Join(strSplt[0:len(strSplt)-1],"")
     strSplt = strings.Split(strSplt[len(strSplt)-1],"[")
-    secID := strSplt[0]
+    secIDstr := strSplt[0]
     chk := strings.Split(strSplt[1],"]")[0]
 
     runeMap := make(map[rune]int)
 
-    for _,char := range name {
+    for _,char := range encodedConcat {
         if runeMap[char] == 0 {
-            runeMap[char] = strings.Count(name, string(char))
+            runeMap[char] = strings.Count(encodedConcat, string(char))
         }
     }
 
@@ -64,20 +70,31 @@ func IsRealRoom(roomEncrypted string) int {
     if len(runeCnt) >= len([]byte(chk)) {
         for i := 0; i < len([]byte(chk)); i++ {
             if runeCnt[i].Char != rune(chk[i]) {
-                return 0
+                return 0, ""
             }
         }
     } else {
-        return 0
+        return 0, ""
     }
 
-    if ret,err := strconv.Atoi(secID); err == nil {
-        return ret
-    } else {
+    secIDint := 0
+    var err error
+
+    if secIDint,err = strconv.Atoi(secIDstr); err != nil {
         log.Fatal("Non-numerical sector ID")
-        return 0
     }
 
-    return 0
-}
+    decoder := func(r rune) rune {
+        switch {
+        case r == '-':
+            return ' '
+        case r >= 'a' && r <= 'z':
+            return 'a' + (r - 'a' + rune(secIDint)) % 26
+        }
+        return -1
+    }
 
+    decoded := strings.Map(decoder, encoded)
+
+    return secIDint, decoded
+}
