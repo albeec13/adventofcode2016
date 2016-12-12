@@ -8,9 +8,11 @@ import (
 )
 
 func main() {
-    var output string
-    //next := 0
+    output := recurseDecomp(input)
+    fmt.Println("Length :", output)
+}
 
+func recurseDecomp(input string) (output int) {
     for start := strings.Index(input, "("); start != -1; start = strings.Index(input, "(")  {
         end := strings.Index(input, ")");
 
@@ -22,13 +24,14 @@ func main() {
             if len(marker) == 2 {
                 if cnt, err = strconv.Atoi(marker[0]); err == nil {
                     if rep, err = strconv.Atoi(marker[1]); err == nil {
-                        output = output + input[:start]
-                        for i := 0; i < rep; i++ {
-                            if len(input[end+1:]) >= cnt {
-                                output = output + input[end + 1 : end + 1 + cnt]
-                            } else {
-                                log.Fatal("Invalid input file length")
-                            }
+                        output = output + len(input[:start])
+
+                        substr := input[end + 1 : end + 1 + cnt]
+
+                        if strings.Index(substr, "(") != -1 {
+                            output = output + (rep * recurseDecomp(substr))
+                        } else {
+                            output = output + (rep * cnt)
                         }
                         input = input[end + 1 + cnt:]
                     } else {
@@ -44,7 +47,6 @@ func main() {
             log.Fatal("Invalid marker format: ", input[start+1:end])
         }
     }
-    output = output + input[:]
-    fmt.Println("Length of output: ", len(output))
+    output = output + len(input[:])
+    return output
 }
-
